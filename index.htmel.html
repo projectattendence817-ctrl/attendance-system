@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Attendance Management System</title>
+
+  <!--
+  ╔══════════════════════════════════════════════════════════╗
+  ║     STUDENT ATTENDANCE MANAGEMENT SYSTEM                 ║
+  ║     Built with: HTML + CSS + JavaScript                  ║
+  ║     Storage   : localStorage (browser-based, no server)  ║
+  ║     Author    : BCA Student Project                      ║
+  ╚══════════════════════════════════════════════════════════╝
+  -->
+
+  <!-- Google Fonts: Outfit (headings) + Nunito (body text) -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ══════════════════════════════════════
+       CSS VARIABLES — Change colors here
+    ══════════════════════════════════════ */
+    :root {
+      --navy:     #1e2d4d;    /* Dark blue — primary color        */
+      --navy2:    #2e4170;    /* Slightly lighter navy            */
+      --orange:   #f97316;    /* Orange accent                    */
+      --orange-l: #fff4ed;    /* Light orange for backgrounds     */
+      --green:    #16a34a;    /* Success / Present color          */
+      --green-l:  #dcfce7;    /* Light green background           */
+      --red:      #dc2626;    /* Danger / Absent color            */
+      --red-l:    #fee2e2;    /* Light red background             */
+      --blue:     #2563eb;    /* Info color                       */
+      --blue-l:   #dbeafe;    /* Light blue background            */
+      --bg:       #f4f6fb;    /* Page background                  */
+      --white:    #ffffff;
+      --border:   #dde3f0;
+      --text:     #1e2d4d;
+      --muted:    #6b7a99;
+      --shadow:   0 2px 16px rgba(30,45,77,.10);
+      --radius:   14px;
+    }
+
+    /* ── RESET & BASE ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── TOP HEADER BAR ── */
+    .topbar {
+      background: var(--navy);
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      box-shadow: 0 2px 12px rgba(30,45,77,.18);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .topbar-logo {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.3px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .topbar-logo .dot {
+      width: 10px; height: 10px;
+      background: var(--orange);
+      border-radius: 50%;
+    }
+    .topbar-date {
+      font-size: .82rem;
+      color: rgba(255,255,255,.55);
+    }
+
+    /* ── TAB NAVIGATION ── */
+    .tabs {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      padding: 0 40px;
+      gap: 4px;
+    }
+    .tab-btn {
+      font-family: 'Outfit', sans-serif;
+      font-size: .875rem;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 16px 22px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -1px;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .tab-btn:hover { color: var(--navy); }
+    /* Active tab gets orange underline */
+    .tab-btn.active {
+      color: var(--orange);
+      border-bottom-color: var(--orange);
+    }
+
+    /* ── MAIN CONTENT AREA ── */
+    .content {
+      max-width: 900px;
+      margin: 36px auto;
+      padding: 0 24px;
+    }
+
+    /* Each tab's section — hidden by default */
+    .section { display: none; }
+    /* Only the active section shows */
+    .section.active {
+      display: block;
+      animation: slideIn .25s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ── SECTION TITLE ── */
+    .section-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 4px;
+    }
+    .section-sub {
+      color: var(--muted);
+      font-size: .88rem;
+      margin-bottom: 28px;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .card-heading {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── FORM ELEMENTS ── */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .form-row.single { grid-template-columns: 1fr; }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    label {
+      font-size: .78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--muted);
+    }
+    /* Required field marker */
+    label .req { color: var(--red); margin-left: 2px; }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"],
+    select {
+      font-family: 'Nunito', sans-serif;
+      font-size: .92rem;
+      color: var(--text);
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border .18s, box-shadow .18s;
+      width: 100%;
+    }
+    input:focus, select:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(249,115,22,.12);
+      background: #fff;
+    }
+    select option { background: #fff; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      font-family: 'Outfit', sans-serif;
+      font-size: .875rem;
+      font-weight: 700;
+      padding: 11px 24px;
+      border-radius: 9px;
+      border: none;
+      cursor: pointer;
+      transition: all .18s;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .btn-primary {
+      background: var(--orange);
+      color: #fff;
+    }
+    .btn-primary:hover { background: #ea6b0a; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(249,115,22,.35); }
+
+    .btn-navy {
+      background: var(--navy);
+      color: #fff;
+    }
+    .btn-navy:hover { background: var(--navy2); transform: translateY(-1px); }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { border-color: var(--navy); color: var(--navy); }
+
+    .btn-sm { padding: 6px 14px; font-size: .8rem; }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-success:hover { background: #15803d; }
+
+    /* ── STAT BOXES (summary row) ── */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .stat-box {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .stat-box .stat-num {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+    }
+    .stat-box .stat-lbl { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+    .stat-box.s-orange .stat-num { color: var(--orange); }
+    .stat-box.s-green  .stat-num { color: var(--green);  }
+    .stat-box.s-red    .stat-num { color: var(--red);    }
+    .stat-box.s-blue   .stat-num { color: var(--blue);   }
+
+    /* ── STUDENT TABLE ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+    thead th {
+      text-align: left;
+      padding: 10px 14px;
+      background: var(--bg);
+      color: var(--muted);
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #fafbff; }
+
+    /* ── BADGES ── */
+    .badge {
+      display: inline-block;
+      padding: 3px 11px;
+      border-radius: 99px;
+      font-size: .75rem;
+      font-weight: 700;
+    }
+    .badge-green  { background: var(--green-l); color: var(--green); }
+    .badge-red    { background: var(--red-l);   color: var(--red);   }
+    .badge-blue   { background: var(--blue-l);  color: var(--blue);  }
+    .badge-orange { background: var(--orange-l);color: var(--orange);}
+
+    /* ── ATTENDANCE ROWS (mark P / A) ── */
+    .att-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .att-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      transition: border .18s, background .18s;
+    }
+    /* Change border color when marked */
+    .att-item.marked-p { border-color: var(--green); background: #f0fdf4; }
+    .att-item.marked-a { border-color: var(--red);   background: #fff5f5; }
+
+    .att-info .att-name { font-weight: 700; font-size: .95rem; }
+    .att-info .att-meta { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+
+    .att-controls { display: flex; gap: 8px; align-items: center; }
+
+    /* Present / Absent toggle buttons */
+    .pa-btn {
+      font-family: 'Outfit', sans-serif;
+      font-size: .8rem;
+      font-weight: 700;
+      padding: 7px 20px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .pa-btn:hover { border-color: var(--text); color: var(--text); }
+    /* Active states */
+    .pa-btn.p-on { background: var(--green); border-color: var(--green); color: #fff; }
+    .pa-btn.a-on { background: var(--red);   border-color: var(--red);   color: #fff; }
+
+    /* ── PROGRESS BAR ── */
+    .progress-wrap { background: var(--border); border-radius: 99px; height: 8px; overflow: hidden; flex: 1; }
+    .progress-fill { height: 100%; border-radius: 99px; transition: width .5s ease; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--muted);
+    }
+    .empty-state .empty-icon { font-size: 2.8rem; margin-bottom: 12px; }
+    .empty-state p { font-size: .9rem; }
+    .empty-state strong { color: var(--navy); }
+
+    /* ── REPORT CARD (individual student) ── */
+    .rep-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+    .rep-header {
+      background: var(--navy);
+      color: #fff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .rep-header .rep-name {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .rep-header .rep-sub { font-size: .78rem; opacity: .65; margin-top: 2px; }
+    .rep-pct {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+    .rep-body { background: #fff; padding: 16px 20px; }
+    .pct-row { display: flex; align-items: center; gap: 12px; }
+    .pct-labels { display: flex; gap: 16px; font-size: .8rem; margin-top: 8px; }
+    .pct-labels span { display: flex; align-items: center; gap: 4px; }
+    .dot-g { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+    .dot-r { width: 8px; height: 8px; border-radius: 50%; background: var(--red);   }
+
+    /* ── ALERT / TOAST NOTIFICATION ── */
+    #toast {
+      position: fixed;
+      bottom: 30px; right: 30px;
+      background: var(--navy);
+      color: #fff;
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: .875rem;
+      font-weight: 600;
+      box-shadow: 0 8px 30px rgba(30,45,77,.25);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all .3s cubic-bezier(.34,1.56,.64,1);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      max-width: 340px;
+    }
+    #toast.show { transform: none; opacity: 1; }
+    #toast.t-success { border-left: 4px solid var(--green); }
+    #toast.t-error   { border-left: 4px solid var(--red);   }
+    #toast.t-info    { border-left: 4px solid var(--orange); }
+
+    /* ── DIVIDER ── */
+    hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+    /* ── BUTTON ROW ── */
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+
+    /* ── SEARCH BAR ── */
+    .search-row { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; }
+    .search-row input { max-width: 280px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .topbar { padding: 0 16px; }
+      .tabs   { padding: 0 8px; }
+      .tab-btn { padding: 14px 12px; font-size: .8rem; }
+      .content { padding: 0 12px; margin: 20px auto; }
+      .form-row { grid-template-columns: 1fr; }
+      .card { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════
+       TOP HEADER BAR
+  ══════════════════════════════════════ -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <div class="dot"></div>
+      Student Attendance System
+    </div>
+    <!-- Shows today's date in the header -->
+    <div class="topbar-date" id="header-date"></div>
+  </header>
+
+  <!-- ══════════════════════════════════════
+       TAB NAVIGATION
+       Three tabs: Add Student | Mark Attendance | Reports
+  ══════════════════════════════════════ -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('add-student', this)">
+      👤 Add Student
+    </button>
+    <button class="tab-btn" onclick="switchTab('mark-attendance', this)">
+      ✅ Mark Attendance
+    </button>
+    <button class="tab-btn" onclick="switchTab('reports', this)">
+      📊 Reports
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════════════ -->
+  <div class="content">
+
+    <!-- ─────────────────────────────────────
+         TAB 1: ADD STUDENT
+         Teacher fills in student details here
+    ───────────────────────────────────── -->
+    <div class="section active" id="sec-add-student">
+
+      <div class="section-title">Add Student</div>
+      <div class="section-sub">Fill in the details below to register a new student.</div>
+
+      <!-- ── ADD STUDENT FORM ── -->
+      <div class="card">
+        <div class="card-heading">➕ New Student Registration</div>
+
+        <!-- Row 1: Name + Roll Number -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Student Name <span class="req">*</span></label>
+            <input type="text" id="inp-name" placeholder="e.g. Sangeeta Patil" />
+          </div>
+          <div class="form-group">
+            <label>Roll Number <span class="req">*</span></label>
+            <input type="text" id="inp-roll" placeholder="e.g. 101" />
+          </div>
+        </div>
+
+        <!-- Row 2: Class + Phone (optional) -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Class / Section <span class="req">*</span></label>
+            <input type="text" id="inp-class" placeholder="e.g. BCA 1st Year" />
+          </div>
+          <div class="form-group">
+            <label>Phone Number <span style="color:var(--muted)">(Optional)</span></label>
+            <input type="tel" id="inp-phone" placeholder="e.g. 9876543210" />
+          </div>
+        </div>
+
+        <!-- Row 3: Email (optional) -->
+        <div class="form-row single">
+          <div class="form-group">
+            <label>Email Address <span style="color:var(--muted)">(Optional)</span></label>
+            <input type="email" id="inp-email" placeholder="e.g. student@email.com" />
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="addStudent()">
+            ➕ Add Student
+          </button>
+          <button class="btn btn-outline" onclick="clearForm()">
+            🔄 Clear Form
+          </button>
+        </div>
+      </div>
+
+      <!-- ── STUDENT LIST TABLE ── -->
+      <div class="card">
+        <div class="card-heading">📋 Registered Students</div>
+
+        <!-- Search box -->
+        <div class="search-row">
+          <input type="text" id="stu-search" placeholder="🔍 Search by name or roll number..."
+                 oninput="renderStudentTable()" style="max-width:300px"/>
+        </div>
+
+        <!-- Student count summary -->
+        <div id="stu-count" style="font-size:.82rem;color:var(--muted);margin-bottom:12px"></div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Roll No.</th>
+                <th>Name</th>
+                <th>Class</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="stu-tbody">
+              <!-- Rows are injected by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /TAB 1 -->
+
+
+    <!-- ─────────────────────────────────────
+         TAB 2: MARK ATTENDANCE
+         Teacher selects date + class, then marks each student
+    ───────────────────────────────────── -->
+    <div class="section" id="sec-mark-attendance">
+
+      <div class="section-title">Mark Attendance</div>
+      <div class="section-sub">Select a class and date, then mark each student Present or Absent.</div>
+
+      <!-- ── SELECT CLASS & DATE ── -->
+      <div class="card">
+        <div class="card-heading">⚙️ Step 1 — Select Class &amp; Date</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Class <span class="req">*</span></label>
+            <!-- Dropdown is populated from saved student data -->
+            <select id="att-class" onchange="loadAttendanceList()">
+              <option value="">-- Select a class --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date <span class="req">*</span></label>
+            <!-- Date input; defaults to today -->
+            <input type="date" id="att-date" onchange="loadAttendanceList()"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ATTENDANCE LIST (Step 2) ── -->
+      <!-- This card is shown only after class + date are selected -->
+      <div id="att-list-wrap" style="display:none">
+        <div class="card">
+          <div class="card-heading">✅ Step 2 — Mark Each Student</div>
+
+          <!-- Quick-mark buttons at the top -->
+          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+            <button class="btn btn-success btn-sm" onclick="markAll('P')">
+              ✅ Mark All Present
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="markAll('A')">
+              ❌ Mark All Absent
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="clearAllMarks()">
+              🔄 Clear All
+            </button>
+          </div>
+
+          <!-- Student attendance rows are injected here -->
+          <div class="att-list" id="att-list"></div>
+
+          <!-- Progress counter: shows "X of Y marked" -->
+          <div id="att-progress" style="font-size:.83rem;color:var(--muted);margin-bottom:16px"></div>
+
+          <!-- Save button -->
+          <button class="btn btn-navy" onclick="saveAttendance()">
+            💾 Save Attendance
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /TAB 2 -->
+
+
+    <!-- ─────────────────────────────────────
+         TAB 3: REPORTS
+         Two sub-sections: Daily Report + Individual Student Report
+    ───────────────────────────────────── -->
+    <div class="section" id="sec-reports">
+
+      <div class="section-title">Reports</div>
+      <div class="section-sub">View daily attendance or check individual student percentage.</div>
+
+      <!-- ══ PART A: DAILY REPORT ══ -->
+      <div class="card">
+        <div class="card-heading">📅 Daily Attendance Report</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Select Date</label>
+            <input type="date" id="rep-date" onchange="renderDailyReport()"/>
+          </div>
+          <div class="form-group">
+            <label>Filter by Class</label>
+            <select id="rep-class" onchange="renderDailyReport()">
+              <option value="">All Classes</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Summary stat boxes -->
+        <div class="stat-row" id="daily-stats" style="display:none"></div>
+
+        <!-- Daily attendance table -->
+        <div id="daily-output"></div>
+      </div>
+
+      <hr/>
+
+      <!-- ══ PART B: INDIVIDUAL STUDENT REPORT ══ -->
+      <div class="card">
+        <div class="card-heading">👤 Individual Student Report</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Select Student</label>
+            <select id="rep-student" onchange="renderStudentReport()">
+              <option value="">-- Select a student --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Filter by Class</label>
+            <select id="rep-student-class" onchange="renderStudentReport()">
+              <option value="">All Classes</option>
+            </select>
+          </div>
+        </div>
+        <!-- Student report output -->
+        <div id="student-rep-output"></div>
+      </div>
+
+      <!-- ══ PART C: ALL STUDENTS SUMMARY ══ -->
+      <div class="card">
+        <div class="card-heading">📊 All Students Attendance Summary</div>
+        <div class="form-group" style="max-width:260px;margin-bottom:16px">
+          <label>Filter by Class</label>
+          <select id="all-rep-class" onchange="renderAllStudentsReport()">
+            <option value="">All Classes</option>
+          </select>
+        </div>
+        <div id="all-students-output"></div>
+      </div>
+
+    </div><!-- /TAB 3 -->
+
+  </div><!-- /content -->
+
+  <!-- ══════════════════════════════════════
+       TOAST NOTIFICATION
+       Shows success/error messages
+  ══════════════════════════════════════ -->
+  <div id="toast"></div>
+
+
+  <!-- ══════════════════════════════════════
+       JAVASCRIPT — ALL LOGIC BELOW
+  ══════════════════════════════════════ -->
+  <script>
+
+    /* ════════════════════════════════════════
+       1. DATA STORAGE FUNCTIONS
+       We use localStorage to save data in
+       the browser. No server is needed.
+    ════════════════════════════════════════ */
+
+    // Get all students from localStorage
+    // Returns an array of student objects
+    function getStudents() {
+      return JSON.parse(localStorage.getItem('sam_students') || '[]');
+    }
+
+    // Save the students array to localStorage
+    function saveStudents(arr) {
+      localStorage.setItem('sam_students', JSON.stringify(arr));
+    }
+
+    // Get all attendance records from localStorage
+    // Returns an array of attendance objects
+    function getAttendance() {
+      return JSON.parse(localStorage.getItem('sam_attendance') || '[]');
+    }
+
+    // Save the attendance array to localStorage
+    function saveAttendanceDB(arr) {
+      localStorage.setItem('sam_attendance', JSON.stringify(arr));
+    }
+
+    // Return unique class names from the student list
+    function getClasses() {
+      const seen = new Set();
+      return getStudents()
+        .map(s => s.cls)
+        .filter(c => { if (seen.has(c)) return false; seen.add(c); return true; })
+        .sort();
+    }
+
+
+    /* ════════════════════════════════════════
+       2. NAVIGATION (TAB SWITCHING)
+    ════════════════════════════════════════ */
+
+    // Called when user clicks a tab button
+    function switchTab(sectionId, btn) {
+
+      // Hide all sections
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      // Remove active state from all tab buttons
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+      // Show the selected section
+      document.getElementById('sec-' + sectionId).classList.add('active');
+      // Highlight the clicked button
+      btn.classList.add('active');
+
+      // Refresh the content of the activated tab
+      if (sectionId === 'add-student')     renderStudentTable();
+      if (sectionId === 'mark-attendance') initAttendanceTab();
+      if (sectionId === 'reports')         initReportsTab();
+    }
+
+
+    /* ════════════════════════════════════════
+       3. TOAST NOTIFICATION
+       Shows a small pop-up message at the
+       bottom-right corner of the screen
+    ════════════════════════════════════════ */
+
+    // type can be 'success', 'error', or 'info'
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+      t.innerHTML  = icons[type] + ' ' + msg;
+      t.className  = 'show t-' + type;
+      // Auto-hide after 3 seconds
+      setTimeout(() => { t.className = ''; }, 3000);
+    }
+
+
+    /* ════════════════════════════════════════
+       4. ADD STUDENT
+    ════════════════════════════════════════ */
+
+    function addStudent() {
+      // Read values from the form inputs
+      const name  = document.getElementById('inp-name').value.trim();
+      const roll  = document.getElementById('inp-roll').value.trim();
+      const cls   = document.getElementById('inp-class').value.trim();
+      const phone = document.getElementById('inp-phone').value.trim();
+      const email = document.getElementById('inp-email').value.trim();
+
+      // Validate required fields
+      if (!name)  return showToast('Please enter student name.', 'error');
+      if (!roll)  return showToast('Please enter roll number.', 'error');
+      if (!cls)   return showToast('Please enter class / section.', 'error');
+
+      const students = getStudents();
+
+      // Check if roll number already exists (duplicate check)
+      if (students.find(s => s.roll === roll)) {
+        return showToast('Roll number already exists!', 'error');
+      }
+
+      // Build the student object
+      const student = {
+        id:    Date.now(),   // unique ID using timestamp
+        name,
+        roll,
+        cls,
+        phone: phone || '—',  // show dash if not provided
+        email: email || '—',
+      };
+
+      // Add to array and save
+      students.push(student);
+      saveStudents(students);
+
+      showToast(`${name} has been added!`, 'success');
+      clearForm();
+      renderStudentTable();
+    }
+
+    // Clear all form input fields
+    function clearForm() {
+      ['inp-name','inp-roll','inp-class','inp-phone','inp-email']
+        .forEach(id => { document.getElementById(id).value = ''; });
+    }
+
+    // Delete a student by their unique ID
+    function deleteStudent(id) {
+      if (!confirm('Delete this student? Their attendance records will be kept.')) return;
+      const filtered = getStudents().filter(s => s.id !== id);
+      saveStudents(filtered);
+      renderStudentTable();
+      showToast('Student removed.', 'info');
+    }
+
+    /* ── Render the student list table ── */
+    function renderStudentTable() {
+      const q = (document.getElementById('stu-search')?.value || '').toLowerCase();
+      const students = getStudents().filter(s =>
+        s.name.toLowerCase().includes(q) || s.roll.toLowerCase().includes(q)
+      );
+
+      const tbody = document.getElementById('stu-tbody');
+      const count = document.getElementById('stu-count');
+
+      count.textContent = `Showing ${students.length} student(s)`;
+
+      // If no students, show empty state
+      if (!students.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <p>${getStudents().length ? 'No results match your search.' : 'No students added yet. Use the form above to add students.'}</p>
+              </div>
+            </td>
+          </tr>`;
+        return;
+      }
+
+      // Build table rows
+      tbody.innerHTML = students.map((s, i) => `
+        <tr>
+          <td style="color:var(--muted)">${i + 1}</td>
+          <td>
+            <code style="background:var(--bg);padding:2px 8px;border-radius:6px;font-size:.8rem;font-weight:700">
+              ${s.roll}
+            </code>
+          </td>
+          <td><strong>${s.name}</strong></td>
+          <td><span class="badge badge-blue">${s.cls}</span></td>
+          <td style="color:var(--muted);font-size:.85rem">${s.phone}</td>
+          <td style="color:var(--muted);font-size:.85rem">${s.email}</td>
+          <td>
+            <button class="btn btn-danger btn-sm" onclick="deleteStudent(${s.id})">
+              🗑 Remove
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+
+    /* ════════════════════════════════════════
+       5. MARK ATTENDANCE
+    ════════════════════════════════════════ */
+
+    // Called when the Mark Attendance tab is opened
+    function initAttendanceTab() {
+      // Populate the class dropdown with saved classes
+      const sel = document.getElementById('att-class');
+      const classes = getClasses();
+      sel.innerHTML = '<option value="">-- Select a class --</option>' +
+        classes.map(c => `<option value="${c}">${c}</option>`).join('');
+
+      // Set date input to today by default
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('att-date').value = today;
+
+      // Hide the student list until class+date are selected
+      document.getElementById('att-list-wrap').style.display = 'none';
+    }
+
+    /* ── Load student list for marking ── */
+    // Called when teacher selects a class or changes the date
+    function loadAttendanceList() {
+      const cls  = document.getElementById('att-class').value;
+      const date = document.getElementById('att-date').value;
+
+      // Need both class and date to continue
+      if (!cls || !date) {
+        document.getElementById('att-list-wrap').style.display = 'none';
+        return;
+      }
+
+      const students = getStudents().filter(s => s.cls === cls);
+
+      if (!students.length) {
+        showToast('No students found in this class.', 'error');
+        document.getElementById('att-list-wrap').style.display = 'none';
+        return;
+      }
+
+      // Get any existing attendance records for this class + date
+      // (so teacher can edit previously saved attendance)
+      const existing = getAttendance().filter(r => r.date === date && r.cls === cls);
+
+      // Show the attendance list card
+      document.getElementById('att-list-wrap').style.display = 'block';
+
+      // Build the student rows
+      const listEl = document.getElementById('att-list');
+      listEl.innerHTML = students.map(s => {
+        // Check if this student already has a record
+        const prev = existing.find(r => r.studentId === s.id);
+        const isPres = prev?.status === 'Present';
+        const isAbs  = prev?.status === 'Absent';
+        const rowCls = isPres ? 'marked-p' : isAbs ? 'marked-a' : '';
+
+        return `
+          <div class="att-item ${rowCls}" id="row-${s.id}">
+            <div class="att-info">
+              <div class="att-name">${s.name}</div>
+              <div class="att-meta">Roll: ${s.roll}</div>
+            </div>
+            <div class="att-controls">
+              <!-- P button: marks Present -->
+              <button class="pa-btn ${isPres ? 'p-on' : ''}"
+                      id="p-${s.id}"
+                      onclick="markStudent(${s.id}, 'P')">
+                P
+              </button>
+              <!-- A button: marks Absent -->
+              <button class="pa-btn ${isAbs ? 'a-on' : ''}"
+                      id="a-${s.id}"
+                      onclick="markStudent(${s.id}, 'A')">
+                A
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      updateProgress(students.length);
+    }
+
+    /* ── Mark a single student Present or Absent ── */
+    function markStudent(studentId, status) {
+      const pBtn = document.getElementById('p-' + studentId);
+      const aBtn = document.getElementById('a-' + studentId);
+      const row  = document.getElementById('row-' + studentId);
+
+      if (status === 'P') {
+        // Activate P button, deactivate A button
+        pBtn.className = 'pa-btn p-on';
+        aBtn.className = 'pa-btn';
+        row.className  = 'att-item marked-p';
+      } else {
+        // Activate A button, deactivate P button
+        aBtn.className = 'pa-btn a-on';
+        pBtn.className = 'pa-btn';
+        row.className  = 'att-item marked-a';
+      }
+
+      // Count total students and update progress text
+      const cls = document.getElementById('att-class').value;
+      const total = getStudents().filter(s => s.cls === cls).length;
+      updateProgress(total);
+    }
+
+    /* ── Mark ALL students with the same status ── */
+    function markAll(status) {
+      const cls = document.getElementById('att-class').value;
+      if (!cls) return;
+      getStudents()
+        .filter(s => s.cls === cls)
+        .forEach(s => markStudent(s.id, status));
+    }
+
+    /* ── Clear all marks (set all to unmarked) ── */
+    function clearAllMarks() {
+      const cls = document.getElementById('att-class').value;
+      if (!cls) return;
+      getStudents().filter(s => s.cls === cls).forEach(s => {
+        const pBtn = document.getElementById('p-' + s.id);
+        const aBtn = document.getElementById('a-' + s.id);
+        const row  = document.getElementById('row-' + s.id);
+        if (pBtn) pBtn.className = 'pa-btn';
+        if (aBtn) aBtn.className = 'pa-btn';
+        if (row)  row.className  = 'att-item';
+      });
+      const total = getStudents().filter(s => s.cls === cls).length;
+      updateProgress(total);
+    }
+
+    /* ── Show how many students are marked ── */
+    function updateProgress(total) {
+      const marked = document.querySelectorAll('.att-item.marked-p, .att-item.marked-a').length;
+      document.getElementById('att-progress').textContent =
+        `${marked} of ${total} students marked`;
+    }
+
+    /* ── Save attendance to localStorage ── */
+    function saveAttendance() {
+      const cls  = document.getElementById('att-class').value;
+      const date = document.getElementById('att-date').value;
+
+      if (!cls || !date) return showToast('Please select class and date.', 'error');
+
+      const students = getStudents().filter(s => s.cls === cls);
+
+      // Remove old records for this class + date (so we can re-save/edit)
+      let attendance = getAttendance().filter(r => !(r.date === date && r.cls === cls));
+
+      let saved = 0;
+
+      students.forEach(s => {
+        const pBtn = document.getElementById('p-' + s.id);
+        const aBtn = document.getElementById('a-' + s.id);
+
+        let status = null;
+        if (pBtn?.classList.contains('p-on')) status = 'Present';
+        if (aBtn?.classList.contains('a-on')) status = 'Absent';
+
+        // Only save if the teacher has marked this student
+        if (status) {
+          attendance.push({
+            date,
+            cls,
+            studentId:   s.id,
+            studentName: s.name,
+            roll:        s.roll,
+            status,
+          });
+          saved++;
+        }
+      });
+
+      if (saved === 0) return showToast('Please mark at least one student.', 'error');
+
+      saveAttendanceDB(attendance);
+      showToast(`Attendance saved for ${saved} student(s) on ${date}.`, 'success');
+    }
+
+
+    /* ════════════════════════════════════════
+       6. REPORTS
+    ════════════════════════════════════════ */
+
+    // Called when the Reports tab is opened
+    function initReportsTab() {
+      // Populate all class dropdowns in the Reports tab
+      const classes = getClasses();
+      const clsOptions = '<option value="">All Classes</option>' +
+        classes.map(c => `<option value="${c}">${c}</option>`).join('');
+
+      document.getElementById('rep-class').innerHTML          = clsOptions;
+      document.getElementById('rep-student-class').innerHTML  = clsOptions;
+      document.getElementById('all-rep-class').innerHTML      = clsOptions;
+
+      // Populate student dropdown
+      const students = getStudents();
+      document.getElementById('rep-student').innerHTML =
+        '<option value="">-- Select a student --</option>' +
+        students.map(s => `<option value="${s.id}">${s.name} (Roll: ${s.roll})</option>`).join('');
+
+      // Set today's date in daily report filter
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('rep-date').value = today;
+
+      renderDailyReport();
+      renderAllStudentsReport();
+    }
+
+    /* ── PART A: Daily Attendance Report ── */
+    function renderDailyReport() {
+      const date = document.getElementById('rep-date').value;
+      const cls  = document.getElementById('rep-class').value;
+
+      let records = getAttendance().filter(r => r.date === date);
+      if (cls) records = records.filter(r => r.cls === cls);
+
+      const statsEl  = document.getElementById('daily-stats');
+      const outputEl = document.getElementById('daily-output');
+
+      if (!records.length) {
+        statsEl.style.display = 'none';
+        outputEl.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📅</div>
+            <p>No attendance records found for <strong>${date}</strong>${cls ? ' in ' + cls : ''}.</p>
+          </div>`;
+        return;
+      }
+
+      const present = records.filter(r => r.status === 'Present').length;
+      const absent  = records.length - present;
+      const pct     = Math.round((present / records.length) * 100);
+
+      // Show summary stat boxes
+      statsEl.style.display = 'grid';
+      statsEl.innerHTML = `
+        <div class="stat-box s-blue">
+          <div class="stat-num">${records.length}</div>
+          <div class="stat-lbl">Total</div>
+        </div>
+        <div class="stat-box s-green">
+          <div class="stat-num">${present}</div>
+          <div class="stat-lbl">Present</div>
+        </div>
+        <div class="stat-box s-red">
+          <div class="stat-num">${absent}</div>
+          <div class="stat-lbl">Absent</div>
+        </div>
+        <div class="stat-box s-orange">
+          <div class="stat-num">${pct}%</div>
+          <div class="stat-lbl">Attendance %</div>
+        </div>
+      `;
+
+      // Show the table of records
+      outputEl.innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Roll No.</th><th>Student Name</th><th>Class</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${records.map((r, i) => `
+                <tr>
+                  <td style="color:var(--muted)">${i + 1}</td>
+                  <td><code style="background:var(--bg);padding:2px 8px;border-radius:6px;font-size:.8rem;font-weight:700">${r.roll}</code></td>
+                  <td><strong>${r.studentName}</strong></td>
+                  <td><span class="badge badge-blue">${r.cls}</span></td>
+                  <td>
+                    <span class="badge ${r.status === 'Present' ? 'badge-green' : 'badge-red'}">
+                      ${r.status}
+                    </span>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    /* ── PART B: Individual Student Report ── */
+    function renderStudentReport() {
+      const sid = parseInt(document.getElementById('rep-student').value);
+      const cls = document.getElementById('rep-student-class').value;
+      const out = document.getElementById('student-rep-output');
+
+      if (!sid) { out.innerHTML = ''; return; }
+
+      const student = getStudents().find(s => s.id === sid);
+      if (!student) return;
+
+      let records = getAttendance().filter(r => r.studentId === sid);
+      if (cls) records = records.filter(r => r.cls === cls);
+
+      // Sort records by date (oldest first)
+      records.sort((a, b) => a.date.localeCompare(b.date));
+
+      const total   = records.length;
+      const present = records.filter(r => r.status === 'Present').length;
+      const absent  = total - present;
+      const pct     = total ? Math.round((present / total) * 100) : 0;
+
+      // Color based on percentage
+      const pctColor = pct >= 75 ? 'var(--green)' : pct >= 50 ? 'var(--orange)' : 'var(--red)';
+
+      if (!total) {
+        out.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>No attendance records for <strong>${student.name}</strong> yet.</p>
+          </div>`;
+        return;
+      }
+
+      out.innerHTML = `
+        <!-- Summary card with name + percentage -->
+        <div class="rep-card">
+          <div class="rep-header">
+            <div>
+              <div class="rep-name">${student.name}</div>
+              <div class="rep-sub">Roll: ${student.roll} &nbsp;|&nbsp; ${student.cls}</div>
+            </div>
+            <div class="rep-pct" style="color:${pctColor}">${pct}%</div>
+          </div>
+          <div class="rep-body">
+            <!-- Progress bar -->
+            <div class="pct-row">
+              <div style="font-size:.78rem;color:var(--muted);white-space:nowrap">Attendance</div>
+              <div class="progress-wrap">
+                <div class="progress-fill" style="width:${pct}%;background:${pctColor}"></div>
+              </div>
+              <div style="font-size:.78rem;font-weight:700;color:${pctColor};white-space:nowrap">${pct}%</div>
+            </div>
+            <!-- Legend -->
+            <div class="pct-labels">
+              <span><span class="dot-g"></span> Present: ${present} day(s)</span>
+              <span><span class="dot-r"></span> Absent: ${absent} day(s)</span>
+              <span>Total: ${total} day(s)</span>
+            </div>
+            <!-- Status label -->
+            <div style="margin-top:10px">
+              <span class="badge ${pct >= 75 ? 'badge-green' : 'badge-red'}">
+                ${pct >= 75 ? '✅ Good Standing' : '⚠️ Low Attendance — Below 75%'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed history table -->
+        <div class="table-wrap" style="margin-top:12px">
+          <table>
+            <thead>
+              <tr><th>#</th><th>Date</th><th>Class</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              ${records.map((r, i) => `
+                <tr>
+                  <td style="color:var(--muted)">${i + 1}</td>
+                  <td>${r.date}</td>
+                  <td><span class="badge badge-blue">${r.cls}</span></td>
+                  <td>
+                    <span class="badge ${r.status === 'Present' ? 'badge-green' : 'badge-red'}">
+                      ${r.status}
+                    </span>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    /* ── PART C: All Students Summary ── */
+    function renderAllStudentsReport() {
+      const cls = document.getElementById('all-rep-class').value;
+      const out = document.getElementById('all-students-output');
+
+      let students = getStudents();
+      if (cls) students = students.filter(s => s.cls === cls);
+
+      if (!students.length) {
+        out.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📊</div>
+            <p>No students found. Add students first.</p>
+          </div>`;
+        return;
+      }
+
+      const allAtt = getAttendance();
+
+      // Build one row per student
+      const rows = students.map(s => {
+        let records = allAtt.filter(r => r.studentId === s.id);
+        if (cls) records = records.filter(r => r.cls === cls);
+        const total   = records.length;
+        const present = records.filter(r => r.status === 'Present').length;
+        const pct     = total ? Math.round((present / total) * 100) : null;
+        const pctColor = pct === null ? 'var(--muted)' :
+                         pct >= 75   ? 'var(--green)' :
+                         pct >= 50   ? 'var(--orange)' : 'var(--red)';
+        return { s, total, present, pct, pctColor };
+      });
+
+      out.innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Roll</th><th>Name</th><th>Class</th>
+                <th>Present</th><th>Total</th><th>Attendance %</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(({ s, total, present, pct, pctColor }, i) => `
+                <tr>
+                  <td style="color:var(--muted)">${i + 1}</td>
+                  <td><code style="background:var(--bg);padding:2px 8px;border-radius:6px;font-size:.8rem;font-weight:700">${s.roll}</code></td>
+                  <td><strong>${s.name}</strong></td>
+                  <td><span class="badge badge-blue">${s.cls}</span></td>
+                  <td style="font-weight:600;color:var(--green)">${total ? present : '—'}</td>
+                  <td style="color:var(--muted)">${total || '—'}</td>
+                  <td>
+                    ${pct !== null
+                      ? `<span style="font-family:'Outfit',sans-serif;font-weight:800;color:${pctColor}">${pct}%</span>`
+                      : `<span style="color:var(--muted);font-size:.85rem">No records</span>`}
+                  </td>
+                  <td>
+                    ${pct !== null
+                      ? `<span class="badge ${pct >= 75 ? 'badge-green' : 'badge-red'}">
+                           ${pct >= 75 ? '✅ Good' : '⚠️ Low'}
+                         </span>`
+                      : '—'}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+
+    /* ════════════════════════════════════════
+       7. STARTUP — runs when page loads
+    ════════════════════════════════════════ */
+
+    window.addEventListener('load', () => {
+
+      // Show today's date in the header bar
+      const now = new Date();
+      document.getElementById('header-date').textContent =
+        now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+      // Render the student table on the first tab
+      renderStudentTable();
+    });
+
+  </script>
+</body>
+</html>
